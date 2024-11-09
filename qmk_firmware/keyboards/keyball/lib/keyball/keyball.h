@@ -1,72 +1,55 @@
 /*
 Copyright 2022 MURAOKA Taro (aka KoRoN, @kaoriya)
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
+このプログラムはフリーソフトウェアです。GNU一般公衆利用許諾契約書の第2版、
+またはそれ以降のバージョンの条件の下で再配布や改変が可能です。
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+このプログラムは有用であることを願って提供されていますが、
+商品性や特定目的への適合性についての明示的または黙示的な保証はありません。
+詳細についてはGNU一般公衆利用許諾契約書を参照してください。
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+このプログラムのコピーは、GNUのウェブサイト<http://www.gnu.org/licenses/>から入手できます。
 */
 
 #pragma once
 
 //////////////////////////////////////////////////////////////////////////////
-// Configurations
+// 設定
 
 #ifndef KEYBALL_CPI_DEFAULT
-#    define KEYBALL_CPI_DEFAULT 500
+#    define KEYBALL_CPI_DEFAULT 500 // デフォルトのCPI値
 #endif
 
 #ifndef KEYBALL_SCROLL_DIV_DEFAULT
-#    define KEYBALL_SCROLL_DIV_DEFAULT 4 // 4: 1/8 (1/2^(n-1))
+#    define KEYBALL_SCROLL_DIV_DEFAULT 4 // スクロール除数のデフォルト値 (4: 1/8)
 #endif
 
 #ifndef KEYBALL_REPORTMOUSE_INTERVAL
-#    define KEYBALL_REPORTMOUSE_INTERVAL 8 // mouse report rate: 125Hz
+#    define KEYBALL_REPORTMOUSE_INTERVAL 8 // マウスレポート間隔: 125Hz
 #endif
 
 #ifndef KEYBALL_SCROLLBALL_INHIVITOR
-#    define KEYBALL_SCROLLBALL_INHIVITOR 50
+#    define KEYBALL_SCROLLBALL_INHIVITOR 50 // スクロールモード切替後の無視時間(ms)
 #endif
 
-/// To disable scroll snap feature, define 0 in your config.h
+/// スクロールスナップ機能を無効化する場合、config.hに0を定義
 #ifndef KEYBALL_SCROLLSNAP_ENABLE
-#    define KEYBALL_SCROLLSNAP_ENABLE 2
+#    define KEYBALL_SCROLLSNAP_ENABLE 2 // スクロールスナップの有効化 (2: 新バージョン)
 #endif
 
 #ifndef KEYBALL_SCROLLSNAP_RESET_TIMER
-#    define KEYBALL_SCROLLSNAP_RESET_TIMER 100
+#    define KEYBALL_SCROLLSNAP_RESET_TIMER 100 // スクロールスナップリセットタイマー(ms)
 #endif
 
 #ifndef KEYBALL_SCROLLSNAP_TENSION_THRESHOLD
-#    define KEYBALL_SCROLLSNAP_TENSION_THRESHOLD 12
+#    define KEYBALL_SCROLLSNAP_TENSION_THRESHOLD 12 // スクロールスナップのテンション閾値
 #endif
 
-/// Specify SROM ID to be uploaded PMW3360DW (optical sensor).  It will be
-/// enabled high CPI setting or so.  Valid valus are 0x04 or 0x81.  Define this
-/// in your config.h to be enable.  Please note that using this option will
-/// increase the firmware size by more than 4KB.
-//#define KEYBALL_PMW3360_UPLOAD_SROM_ID 0x04
-//#define KEYBALL_PMW3360_UPLOAD_SROM_ID 0x81
-
-/// Defining this macro keeps two functions intact: keycode_config() and
-/// mod_config() in keycode_config.c.
-///
-/// These functions customize the magic key code and are useless if the magic
-/// key code is disabled.  Therefore, Keyball automatically disables it.
-/// However, there may be cases where you still need these functions even after
-/// disabling the magic key code. In that case, define this macro.
-//#define KEYBALL_KEEP_MAGIC_FUNCTIONS
+/// 特定のレイヤーでズーム機能を有効にするためのレイヤー番号
+#define KEYBALL_ZOOM_LAYER 1
 
 //////////////////////////////////////////////////////////////////////////////
-// Constants
+// 定数
 
 #define KEYBALL_TX_GETINFO_INTERVAL 500
 #define KEYBALL_TX_GETINFO_MAXTRY 10
@@ -87,55 +70,54 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEYBALL_OLED_MAX_PRESSING_KEYCODES 6
 
 //////////////////////////////////////////////////////////////////////////////
-// Types
+// 型定義
 
 enum keyball_keycodes {
-    KBC_RST  = QK_KB_0, // Keyball configuration: reset to default
-    KBC_SAVE = QK_KB_1, // Keyball configuration: save to EEPROM
+    KBC_RST  = QK_KB_0, // Keyball設定: デフォルトにリセット
+    KBC_SAVE = QK_KB_1, // Keyball設定: EEPROMに保存
 
-    CPI_I100 = QK_KB_2, // CPI +100 CPI
-    CPI_D100 = QK_KB_3, // CPI -100 CPI
-    CPI_I1K  = QK_KB_4, // CPI +1000 CPI
-    CPI_D1K  = QK_KB_5, // CPI -1000 CPI
+    CPI_I100 = QK_KB_2, // CPIを+100増加
+    CPI_D100 = QK_KB_3, // CPIを-100減少
+    CPI_I1K  = QK_KB_4, // CPIを+1000増加
+    CPI_D1K  = QK_KB_5, // CPIを-1000減少
 
-    // In scroll mode, motion from primary trackball is treated as scroll
-    // wheel.
-    SCRL_TO  = QK_KB_6, // Toggle scroll mode
-    SCRL_MO  = QK_KB_7, // Momentary scroll mode
-    SCRL_DVI = QK_KB_8, // Increment scroll divider
-    SCRL_DVD = QK_KB_9, // Decrement scroll divider
+    // スクロールモードでは、プライマリトラックボールの動きをスクロールホイールとして扱う
+    SCRL_TO  = QK_KB_6, // スクロールモードのトグル
+    SCRL_MO  = QK_KB_7, // 一時的なスクロールモード
+    SCRL_DVI = QK_KB_8, // スクロール除数の増加
+    SCRL_DVD = QK_KB_9, // スクロール除数の減少
 
-    SSNP_VRT = QK_KB_13, // Set scroll snap mode as vertical
-    SSNP_HOR = QK_KB_14, // Set scroll snap mode as horizontal
-    SSNP_FRE = QK_KB_15, // Set scroll snap mode as disable (free scroll)
+    SSNP_VRT = QK_KB_13, // スクロールスナップモードを垂直に設定
+    SSNP_HOR = QK_KB_14, // スクロールスナップモードを水平に設定
+    SSNP_FRE = QK_KB_15, // スクロールスナップモードを無効化 (フリースクロール)
 
-    // Auto mouse layer control keycodes.
-    // Only works when POINTING_DEVICE_AUTO_MOUSE_ENABLE is defined.
-    AML_TO   = QK_KB_10, // Toggle automatic mouse layer
-    AML_I50  = QK_KB_11, // Increment automatic mouse layer timeout
-    AML_D50  = QK_KB_12, // Decrement automatic mouse layer timeout
+    // オートマウスレイヤー制御用キーコード
+    // POINTING_DEVICE_AUTO_MOUSE_ENABLEが定義されている場合のみ有効
+    AML_TO   = QK_KB_10, // オートマウスレイヤーのトグル
+    AML_I50  = QK_KB_11, // オートマウスレイヤーのタイムアウトを50ms増加
+    AML_D50  = QK_KB_12, // オートマウスレイヤーのタイムアウトを50ms減少
 
-    // User customizable 32 keycodes.
+    // ユーザーカスタマイズ可能な32キーコード
     KEYBALL_SAFE_RANGE = QK_USER_0,
 };
 
 typedef union {
     uint32_t raw;
     struct {
-        uint8_t cpi : 7;
-        uint8_t sdiv : 3;  // scroll divider
+        uint8_t cpi : 7;      // CPI値
+        uint8_t sdiv : 3;     // スクロール除数
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
-        uint8_t amle : 1;  // automatic mouse layer enabled
-        uint16_t amlto : 5; // automatic mouse layer timeout
+        uint8_t amle : 1;     // オートマウスレイヤーの有効化
+        uint16_t amlto : 5;   // オートマウスレイヤーのタイムアウト
 #endif
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
-        uint8_t ssnap : 2; // scroll snap mode
+        uint8_t ssnap : 2;    // スクロールスナップモード
 #endif
     };
 } keyball_config_t;
 
 typedef struct {
-    uint8_t ballcnt; // count of balls: support only 0 or 1, for now
+    uint8_t ballcnt; // ボールの数: 現在は0または1のみ対応
 } keyball_info_t;
 
 typedef struct {
@@ -146,127 +128,101 @@ typedef struct {
 typedef uint8_t keyball_cpi_t;
 
 typedef enum {
-    KEYBALL_SCROLLSNAP_MODE_VERTICAL   = 0,
-    KEYBALL_SCROLLSNAP_MODE_HORIZONTAL = 1,
-    KEYBALL_SCROLLSNAP_MODE_FREE       = 2,
+    KEYBALL_SCROLLSNAP_MODE_VERTICAL   = 0, // 垂直スクロールスナップ
+    KEYBALL_SCROLLSNAP_MODE_HORIZONTAL = 1, // 水平スクロールスナップ
+    KEYBALL_SCROLLSNAP_MODE_FREE       = 2, // フリースクロール
 } keyball_scrollsnap_mode_t;
 
 typedef struct {
-    bool this_have_ball;
-    bool that_enable;
-    bool that_have_ball;
+    bool this_have_ball;                  // プライマリボールの有無
+    bool that_enable;                     // セカンダリの有効化
+    bool that_have_ball;                  // セカンダリボールの有無
 
-    keyball_motion_t this_motion;
-    keyball_motion_t that_motion;
+    keyball_motion_t this_motion;         // プライマリの動き
+    keyball_motion_t that_motion;         // セカンダリの動き
 
-    uint8_t cpi_value;
-    bool    cpi_changed;
+    uint8_t cpi_value;                    // CPI値
+    bool    cpi_changed;                  // CPI変更フラグ
 
-    bool     scroll_mode;
-    uint32_t scroll_mode_changed;
-    uint8_t  scroll_div;
+    bool     scroll_mode;                 // スクロールモードの有効化
+    uint32_t scroll_mode_changed;         // スクロールモード変更時刻
+    uint8_t  scroll_div;                  // スクロール除数
 
 #if KEYBALL_SCROLLSNAP_ENABLE == 1
-    uint32_t scroll_snap_last;
-    int8_t   scroll_snap_tension_h;
+    uint32_t scroll_snap_last;            // 最後のスナップタイム
+    int8_t   scroll_snap_tension_h;       // スクロールスナップのテンション (水平)
 #elif KEYBALL_SCROLLSNAP_ENABLE == 2
-    keyball_scrollsnap_mode_t scrollsnap_mode;
+    keyball_scrollsnap_mode_t scrollsnap_mode; // 現在のスクロールスナップモード
 #endif
 
-    uint16_t       last_kc;
-    keypos_t       last_pos;
-    report_mouse_t last_mouse;
+    uint16_t       last_kc;                // 最後のキーコード
+    keypos_t       last_pos;               // 最後のキー位置
+    report_mouse_t last_mouse;             // 最後のマウスレポート
 
-    // Buffer to indicate pressing keys.
+    // 押下中のキーを示すバッファ
     char pressing_keys[KEYBALL_OLED_MAX_PRESSING_KEYCODES + 1];
 } keyball_t;
 
 typedef enum {
-    KEYBALL_ADJUST_PENDING   = 0,
-    KEYBALL_ADJUST_PRIMARY   = 1,
-    KEYBALL_ADJUST_SECONDARY = 2,
+    KEYBALL_ADJUST_PENDING    = 0, // レイアウト調整保留中
+    KEYBALL_ADJUST_PRIMARY    = 1, // プライマリ調整中
+    KEYBALL_ADJUST_SECONDARY  = 2, // セカンダリ調整中
 } keyball_adjust_t;
 
 //////////////////////////////////////////////////////////////////////////////
-// Exported values (touch carefully)
+// エクスポートされる値 (慎重に操作してください)
 
 extern keyball_t keyball;
 
 //////////////////////////////////////////////////////////////////////////////
-// Hook points
+// フックポイント
 
-/// keyball_on_adjust_layout is called when the keyboard layout adjustted
+/// keyball_on_adjust_layoutはキーボードレイアウトが調整されたときに呼び出されます
 void keyball_on_adjust_layout(keyball_adjust_t v);
 
-/// keyball_on_apply_motion_to_mouse_move applies trackball's motion m to r as
-/// mouse movement.
-/// You can change the default algorithm by override this function.
+/// keyball_on_apply_motion_to_mouse_moveはトラックボールの動きをマウス移動として適用します。
+/// デフォルトのアルゴリズムを変更する場合、この関数をオーバーライドしてください。
 void keyball_on_apply_motion_to_mouse_move(keyball_motion_t *m, report_mouse_t *r, bool is_left);
 
-/// keyball_on_apply_motion_to_mouse_scroll applies trackball's motion m to r
-/// as mouse scroll.
-/// You can change the default algorithm by override this function.
+/// keyball_on_apply_motion_to_mouse_scrollはトラックボールの動きをマウススクロールとして適用します。
+/// デフォルトのアルゴリズムを変更する場合、この関数をオーバーライドしてください。
 void keyball_on_apply_motion_to_mouse_scroll(keyball_motion_t *m, report_mouse_t *r, bool is_left);
 
-//////////////////////////////////////////////////////////////////////////////
-// Public API functions
+////////////////////////////////////////////////////////////////////////////////
+// 公開API関数
 
-/// keyball_oled_render_ballinfo renders ball information to OLED.
-/// It uses just 21 columns to show the info.
+/// keyball_oled_render_ballinfoはボール情報をOLEDに表示します。
+/// 21列のみを使用して情報を表示します。
 void keyball_oled_render_ballinfo(void);
 
-/// keyball_oled_render_keyinfo renders last processed key information to OLED.
-/// It shows column, row, key code, and key name (if available).
+/// keyball_oled_render_keyinfoは最後に処理されたキー情報をOLEDに表示します。
+/// 列、行、キーコード、キー名（利用可能な場合）を表示します。
 void keyball_oled_render_keyinfo(void);
 
-/// keyball_oled_render_layerinfo renders current layer status information to
-/// OLED.  It shows layer mask with number (1~f) for active layers and '_' for
-/// inactive layers.
+/// keyball_oled_render_layerinfoは現在のレイヤーステータス情報をOLEDに表示します。
+/// アクティブなレイヤーには番号（1~f）が表示され、非アクティブなレイヤーには'_'が表示されます。
 void keyball_oled_render_layerinfo(void);
 
-/// keyball_get_scroll_mode gets current scroll mode.
+/// keyball_get_scroll_modeは現在のスクロールモードを取得します。
 bool keyball_get_scroll_mode(void);
 
-/// keyball_set_scroll_mode modify scroll mode.
+/// keyball_set_scroll_modeはスクロールモードを変更します。
 void keyball_set_scroll_mode(bool mode);
 
-/// keyball_get_scrollsnap_mode gets current scroll snap mode.
+/// keyball_get_scrollsnap_modeは現在のスクロールスナップモードを取得します。
 keyball_scrollsnap_mode_t keyball_get_scrollsnap_mode(void);
 
-/// keyball_set_scrollsnap_mode change scroll snap mode.
+/// keyball_set_scrollsnap_modeはスクロールスナップモードを変更します。
 void keyball_set_scrollsnap_mode(keyball_scrollsnap_mode_t mode);
 
-/// keyball_get_scroll_div gets current scroll divider.
-/// See also keyball_set_scroll_div for the scroll divider's detail.
+/// keyball_get_scroll_divは現在のスクロール除数を取得します。
 uint8_t keyball_get_scroll_div(void);
 
-/// keyball_set_scroll_div changes scroll divider.
-///
-/// The scroll divider is the number that divides the raw value when applying
-/// trackball motion to scrolling.  The CPI value of the trackball is very
-/// high, so if you apply it to scrolling as is, it will scroll too much.
-/// In order to adjust the scroll amount to be appropriate, it is applied after
-/// dividing it by a scroll divider.  The actual denominator is determined by
-/// the following formula:
-///
-///   denominator = 2 ^ (div - 1) ^2
-///
-/// Valid values are between 1 and 7, KEYBALL_SCROLL_DIV_DEFAULT is used when 0
-/// is specified.
+/// keyball_set_scroll_divはスクロール除数を変更します。
 void keyball_set_scroll_div(uint8_t div);
 
-/// keyball_get_cpi gets current CPI of trackball.
-/// The actual CPI value is the returned value multiplied by 100:
-///
-///     CPI = v * 100
+/// keyball_get_cpiは現在のトラックボールのCPIを取得します。
 uint8_t keyball_get_cpi(void);
 
-/// keyball_set_cpi changes CPI of trackball.
-/// Valid values are 0 to 120. If it is 0, KEYBALL_CPI_DEFAULT will be used,
-/// otherwise the actual CPI value will be the set value multiplied by 100:
-///
-///     CPI = v * 100
-///
-/// In addition, if you do not upload SROM, the maximum value will be limited
-/// to 35 (3500CPI).
+/// keyball_set_cpiはトラックボールのCPIを変更します。
 void keyball_set_cpi(uint8_t cpi);
