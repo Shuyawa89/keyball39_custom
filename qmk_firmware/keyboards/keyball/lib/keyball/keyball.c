@@ -18,7 +18,6 @@ Copyright 2022 MURAOKA Taro (aka KoRoN)
 
 #include "keyball.h"
 #include "drivers/pmw3360/pmw3360.h"
-#include "os_detect.h" // OS検出機能を利用するために追加
 
 #include <string.h>
 
