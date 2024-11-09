@@ -210,10 +210,10 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
                 unregister_code(KC_LGUI);
             } else {
                 // Windows/Linuxの場合: Ctrl + '+'
-                register_code(KC_LCTRL);
+                register_code(KC_LCTL );
                 register_code(KC_EQUAL);
                 unregister_code(KC_EQUAL);
-                unregister_code(KC_LCTRL);
+                unregister_code(KC_LCTL );
             }
         } else if (y < 0) {
             // ズームアウト
@@ -225,10 +225,10 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
                 unregister_code(KC_LGUI);
             } else {
                 // Windows/Linuxの場合: Ctrl + '-'
-                register_code(KC_LCTRL);
+                register_code(KC_LCTL );
                 register_code(KC_MINUS);
                 unregister_code(KC_MINUS);
-                unregister_code(KC_LCTRL);
+                unregister_code(KC_LCTL );
             }
         }
     } else {

@@ -46,8 +46,9 @@ Copyright 2022 MURAOKA Taro (aka KoRoN, @kaoriya)
 #endif
 
 /// 特定のレイヤーでズーム機能を有効にするためのレイヤー番号
-#define KEYBALL_ZOOM_LAYER 1
-
+#ifndef KEYBALL_ZOOM_LAYER
+    #define KEYBALL_ZOOM_LAYER 2 // デフォルト値。config.hで上書き可能
+#endif
 //////////////////////////////////////////////////////////////////////////////
 // 定数
 
