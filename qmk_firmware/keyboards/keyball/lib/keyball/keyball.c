@@ -1,5 +1,5 @@
 /*
-Copyright 2022 MURAOKA Taro (aka KoRoN, @kaoriya)
+Copyright 2022 MURAOKA Taro (aka KoRoN)
 
 このプログラムはフリーソフトウェアです。GNU一般公衆利用許諾契約書の第2版、
 またはそれ以降のバージョンの条件の下で再配布や改変が可能です。
@@ -18,6 +18,7 @@ Copyright 2022 MURAOKA Taro (aka KoRoN, @kaoriya)
 
 #include "keyball.h"
 #include "drivers/pmw3360/pmw3360.h"
+#include "os_detect.h" // OS検出機能を利用するために追加
 
 #include <string.h>
 
@@ -49,6 +50,14 @@ keyball_t keyball = {
 
     .scroll_mode = false,
     .scroll_div  = 0,
+
+#if KEYBALL_SCROLLSNAP_ENABLE == 2
+    .scrollsnap_mode = KEYBALL_SCROLLSNAP_MODE_VERTICAL, // デフォルトを垂直に設定
+#endif
+
+    .last_kc  = 0,
+    .last_pos = {0, 0},
+    .last_mouse = {0},
 
     .pressing_keys = { BL, BL, BL, BL, BL, BL, 0 },
 };
@@ -188,7 +197,8 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_move(keyball_motion_
 }
 
 __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motion_t *m, report_mouse_t *r, bool is_left) {
-    
+    uint32_t now = timer_read32(); // 'now' を定義
+
     // トラックボールの動きを処理する
     // keyball_get_scroll_div() の結果に基づき、動きを調整するための分割値を設定
     int16_t div = 1 << (keyball_get_scroll_div() - 1);
@@ -210,10 +220,10 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
                 unregister_code(KC_LGUI);
             } else {
                 // Windows/Linuxの場合: Ctrl + '+'
-                register_code(KC_LCTL );
+                register_code(KC_LCTL);
                 register_code(KC_EQUAL);
                 unregister_code(KC_EQUAL);
-                unregister_code(KC_LCTL );
+                unregister_code(KC_LCTL);
             }
         } else if (y < 0) {
             // ズームアウト
@@ -225,10 +235,10 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
                 unregister_code(KC_LGUI);
             } else {
                 // Windows/Linuxの場合: Ctrl + '-'
-                register_code(KC_LCTL );
+                register_code(KC_LCTL);
                 register_code(KC_MINUS);
                 unregister_code(KC_MINUS);
-                unregister_code(KC_LCTL );
+                unregister_code(KC_LCTL);
             }
         }
     } else {
@@ -250,7 +260,6 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
         // スクロールスナップ機能を適用する（スクロールの引っ掛かり効果を追加）
 #if KEYBALL_SCROLLSNAP_ENABLE == 1
         // 旧バージョンのスナップ機能（バージョン1.3.2まで）
-        uint32_t now = timer_read32();   // 現在のタイマー値を取得
         if (r->h != 0 || r->v != 0) {    // マウスレポートに動きがある場合
             keyball.scroll_snap_last = now; // 最後のスナップタイムを更新
         } else if (TIMER_DIFF_32(now, keyball.scroll_snap_last) >= KEYBALL_SCROLLSNAP_RESET_TIMER) {
@@ -284,67 +293,57 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
         }
     }
 
-    // スクロールモードの変更直後の無視時間を適用
-#if defined(KEYBALL_SCROLLBALL_INHIVITOR) && KEYBALL_SCROLLBALL_INHIVITOR > 0
-    if (TIMER_DIFF_32(now, keyball.scroll_mode_changed) < KEYBALL_SCROLLBALL_INHIVITOR) {
-        keyball.this_motion.x = 0;
-        keyball.this_motion.y = 0;
-        keyball.that_motion.x = 0;
-        keyball.that_motion.y = 0;
-    }
-#endif
-}
-
-static void motion_to_mouse(keyball_motion_t *m, report_mouse_t *r, bool is_left, bool as_scroll) {
-    if (as_scroll) {
-        keyball_on_apply_motion_to_mouse_scroll(m, r, is_left);
-    } else {
-        keyball_on_apply_motion_to_mouse_move(m, r, is_left);
-    }
-}
-
-static inline bool should_report(void) {
-    uint32_t now = timer_read32();
-#if defined(KEYBALL_REPORTMOUSE_INTERVAL) && KEYBALL_REPORTMOUSE_INTERVAL > 0
-    // マウスレポートレートをスロットリング
-    static uint32_t last = 0;
-    if (TIMER_DIFF_32(now, last) < KEYBALL_REPORTMOUSE_INTERVAL) {
-        return false;
-    }
-    last = now;
-#endif
-#if defined(KEYBALL_SCROLLBALL_INHIVITOR) && KEYBALL_SCROLLBALL_INHIVITOR > 0
-    if (TIMER_DIFF_32(now, keyball.scroll_mode_changed) < KEYBALL_SCROLLBALL_INHIVITOR) {
-        keyball.this_motion.x = 0;
-        keyball.this_motion.y = 0;
-        keyball.that_motion.x = 0;
-        keyball.that_motion.y = 0;
-    }
-#endif
-    return true;
-}
-
-report_mouse_t pointing_device_driver_get_report(report_mouse_t rep) {
-    // 光学センサーからデータを取得
-    if (keyball.this_have_ball) {
-        pmw3360_motion_t d = {0};
-        if (pmw3360_motion_burst(&d)) {
-            ATOMIC_BLOCK_FORCEON {
-                keyball.this_motion.x = add16(keyball.this_motion.x, d.x);
-                keyball.this_motion.y = add16(keyball.this_motion.y, d.y);
-            }
+    // スクロールモードの動きをマウスに適用
+    static void motion_to_mouse(keyball_motion_t *m, report_mouse_t *r, bool is_left, bool as_scroll) {
+        if (as_scroll) {
+            keyball_on_apply_motion_to_mouse_scroll(m, r, is_left);
+        } else {
+            keyball_on_apply_motion_to_mouse_move(m, r, is_left);
         }
     }
-    // キーボードがマスターの場合、マウスイベントを報告
-    if (is_keyboard_master() && should_report()) {
-        // PMW3360の動きに基づいてマウスレポートを修正
-        motion_to_mouse(&keyball.this_motion, &rep, is_keyboard_left(), keyball.scroll_mode);
-        motion_to_mouse(&keyball.that_motion, &rep, !is_keyboard_left(), keyball.scroll_mode ^ keyball.this_have_ball);
-        // OLED用にマウスレポートを保存
-        keyball.last_mouse = rep;
+
+    static inline bool should_report(void) {
+        uint32_t now = timer_read32();
+#if defined(KEYBALL_REPORTMOUSE_INTERVAL) && KEYBALL_REPORTMOUSE_INTERVAL > 0
+        // マウスレポートレートをスロットリング
+        static uint32_t last = 0;
+        if (TIMER_DIFF_32(now, last) < KEYBALL_REPORTMOUSE_INTERVAL) {
+            return false;
+        }
+        last = now;
+#endif
+#if defined(KEYBALL_SCROLLBALL_INHIVITOR) && KEYBALL_SCROLLBALL_INHIVITOR > 0
+        if (TIMER_DIFF_32(now, keyball.scroll_mode_changed) < KEYBALL_SCROLLBALL_INHIVITOR) {
+            keyball.this_motion.x = 0;
+            keyball.this_motion.y = 0;
+            keyball.that_motion.x = 0;
+            keyball.that_motion.y = 0;
+        }
+#endif
+        return true;
     }
-    return rep;
-}
+
+    report_mouse_t pointing_device_driver_get_report(report_mouse_t rep) {
+        // 光学センサーからデータを取得
+        if (keyball.this_have_ball) {
+            pmw3360_motion_t d = {0};
+            if (pmw3360_motion_burst(&d)) {
+                ATOMIC_BLOCK_FORCEON {
+                    keyball.this_motion.x = add16(keyball.this_motion.x, d.x);
+                    keyball.this_motion.y = add16(keyball.this_motion.y, d.y);
+                }
+            }
+        }
+        // キーボードがマスターの場合、マウスイベントを報告
+        if (is_keyboard_master() && should_report()) {
+            // PMW3360の動きに基づいてマウスレポートを修正
+            motion_to_mouse(&keyball.this_motion, &rep, is_keyboard_left(), keyball.scroll_mode);
+            motion_to_mouse(&keyball.that_motion, &rep, !is_keyboard_left(), keyball.scroll_mode ^ keyball.this_have_ball);
+            // OLED用にマウスレポートを保存
+            keyball.last_mouse = rep;
+        }
+        return rep;
+    }
 
 //////////////////////////////////////////////////////////////////////////////
 // スプリットRPC
@@ -470,7 +469,7 @@ void keyball_oled_render_ballinfo(void) {
     oled_write_P(PSTR("00 "), false);
 
     // スクロールスナップモードを表示: "VT" (垂直), "HO" (水平), "SCR" (自由)
-#if 1 && KEYBALL_SCROLLSNAP_ENABLE == 2
+#if KEYBALL_SCROLLSNAP_ENABLE == 2
     switch (keyball_get_scrollsnap_mode()) {
         case KEYBALL_SCROLLSNAP_MODE_VERTICAL:
             oled_write_P(PSTR("VT"), false);
@@ -565,7 +564,6 @@ void keyball_oled_render_layerinfo(void) {
 #endif
 #endif
 }
-
 //////////////////////////////////////////////////////////////////////////////
 // 公開API関数
 
@@ -584,7 +582,7 @@ keyball_scrollsnap_mode_t keyball_get_scrollsnap_mode(void) {
 #if KEYBALL_SCROLLSNAP_ENABLE == 2
     return keyball.scrollsnap_mode;
 #else
-    return 0;
+    return KEYBALL_SCROLLSNAP_MODE_VERTICAL; // デフォルト値
 #endif
 }
 

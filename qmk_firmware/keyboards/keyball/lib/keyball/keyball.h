@@ -1,5 +1,5 @@
 /*
-Copyright 2022 MURAOKA Taro (aka KoRoN, @kaoriya)
+Copyright 2022 MURAOKA Taro (aka KoRoN)
 
 このプログラムはフリーソフトウェアです。GNU一般公衆利用許諾契約書の第2版、
 またはそれ以降のバージョンの条件の下で再配布や改変が可能です。
@@ -47,8 +47,9 @@ Copyright 2022 MURAOKA Taro (aka KoRoN, @kaoriya)
 
 /// 特定のレイヤーでズーム機能を有効にするためのレイヤー番号
 #ifndef KEYBALL_ZOOM_LAYER
-    #define KEYBALL_ZOOM_LAYER 2 // デフォルト値。config.hで上書き可能
+#    define KEYBALL_ZOOM_LAYER 1
 #endif
+
 //////////////////////////////////////////////////////////////////////////////
 // 定数
 
@@ -189,7 +190,11 @@ void keyball_on_apply_motion_to_mouse_move(keyball_motion_t *m, report_mouse_t *
 /// デフォルトのアルゴリズムを変更する場合、この関数をオーバーライドしてください。
 void keyball_on_apply_motion_to_mouse_scroll(keyball_motion_t *m, report_mouse_t *r, bool is_left);
 
-////////////////////////////////////////////////////////////////////////////////
+/// keyball_on_apply_motion_to_mouse_zoomはトラックボールの動きをズーム操作として適用します。
+/// 特定のレイヤーがアクティブな場合に呼び出されます。
+void keyball_on_apply_motion_to_mouse_zoom(keyball_motion_t *m, bool is_left);
+
+//////////////////////////////////////////////////////////////////////////////
 // 公開API関数
 
 /// keyball_oled_render_ballinfoはボール情報をOLEDに表示します。
