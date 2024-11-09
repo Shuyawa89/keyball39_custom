@@ -238,47 +238,13 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
     if (zoom_mode) {
         // ズームイン・ズームアウトの処理
         if (y > 0) {
-    //       osごとに処理を分ける
-    //         // ズームイン
-    //         if (detected_host_os() == OS_MACOS) {
-    //             // macOSの場合: Cmd + '+'
-    //             register_code(KC_LGUI);
-    //             register_code(KC_EQUAL);
-    //             unregister_code(KC_EQUAL);
-    //             unregister_code(KC_LGUI);
-    //         } else {
-    //             // Windows/Linuxの場合: Ctrl + '+'
-    //             register_code(KC_LCTL);
-    //             register_code(KC_EQUAL);
-    //             unregister_code(KC_EQUAL);
-    //             unregister_code(KC_LCTL);
-    //         }
-    //     } else if (y < 0) {
-    //         // ズームアウト
-    //         if (detected_host_os() == OS_MACOS) {
-    //             // macOSの場合: Cmd + '-'
-    //             register_code(KC_LGUI);
-    //             register_code(KC_MINUS);
-    //             unregister_code(KC_MINUS);
-    //             unregister_code(KC_LGUI);
-    //         } else {
-    //             // Windows/Linuxの場合: Ctrl + '-'
-    //             register_code(KC_LCTL);
-    //             register_code(KC_MINUS);
-    //             unregister_code(KC_MINUS);
-    //             unregister_code(KC_LCTL);
-    //         }
-    //     }
-    // } else {
-            // ズームイン
-            // OS検出機能がないため、一律でCtrl + '+' を送信
+            // 一律でCtrl + '+' を送信
             register_code(KC_LCTL);
             register_code(KC_EQUAL);
             unregister_code(KC_EQUAL);
             unregister_code(KC_LCTL);
         } else if (y < 0) {
-            // ズームアウト
-            // OS検出機能がないため、一律でCtrl + '-' を送信
+            // 一律でCtrl + '-' を送信
             register_code(KC_LCTL);
             register_code(KC_MINUS);
             unregister_code(KC_MINUS);
@@ -327,7 +293,7 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
         }
 #endif
 
-        // OSに関係なく、スクロール方向を反転
+        // スクロール方向を反転
         r->h = -r->h;
         r->v = -r->v;
     }
@@ -341,6 +307,7 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
     }
 #endif
 }
+
 
 report_mouse_t pointing_device_driver_get_report(report_mouse_t rep) {
     // 光学センサーからデータを取得
