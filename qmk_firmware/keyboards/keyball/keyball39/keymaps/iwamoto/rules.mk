@@ -1,7 +1,3 @@
 RGBLIGHT_ENABLE = no
 
 OLED_ENABLE = yes
-
-VIA_ENABLE = yes
-
-OS_DETECTION_ENABLE = yes
