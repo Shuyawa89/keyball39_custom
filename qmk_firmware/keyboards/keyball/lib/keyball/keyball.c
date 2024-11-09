@@ -61,12 +61,12 @@ keyball_t keyball = {
     .pressing_keys = { BL, BL, BL, BL, BL, BL, 0 },
 };
 
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // フックポイント
 
 __attribute__((weak)) void keyball_on_adjust_layout(keyball_adjust_t v) {}
 
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // 静的ユーティリティ関数
 
 // add16はint16_tをクリッピングして加算します。
@@ -140,7 +140,7 @@ static void add_scroll_div(int8_t delta) {
     keyball_set_scroll_div(v < 1 ? 1 : v);
 }
 
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // ポインティングデバイスドライバー
 
 #if KEYBALL_MODEL == 46
@@ -188,13 +188,14 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_move(keyball_motion_
     r->x = clip2int8(m->x);
     r->y = -clip2int8(m->y);
 #else
-#    error("unknown Keyball model")
+#    error "unknown Keyball model"
 #endif
     // 動きをクリア
     m->x = 0;
     m->y = 0;
 }
 
+// 関数の定義を外に移動
 static void motion_to_mouse(keyball_motion_t *m, report_mouse_t *r, bool is_left, bool as_scroll) {
     if (as_scroll) {
         keyball_on_apply_motion_to_mouse_scroll(m, r, is_left);
@@ -263,7 +264,7 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
         r->h = clip2int8(x);          // X方向の動きを水平方向に適用
         r->v = clip2int8(y);          // Y方向の動きを垂直方向に適用
 #else
-#    error("unknown Keyball model") // 未知のKeyballモデルの場合、コンパイルエラーを出力
+#    error "unknown Keyball model" // 未知のKeyballモデルの場合、コンパイルエラーを出力
 #endif
 
         // スクロールスナップ機能を適用する（スクロールの引っ掛かり効果を追加）
@@ -288,7 +289,7 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
                 r->v = 0;  // 垂直方向の動きを無効化（横方向のみにスクロール）
                 break;
             default:
-                // どのモードにも該当しない場合、何も処理を行わない
+                // 何もしない
                 break;
         }
 #endif
@@ -307,7 +308,6 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
     }
 #endif
 }
-
 
 report_mouse_t pointing_device_driver_get_report(report_mouse_t rep) {
     // 光学センサーからデータを取得
@@ -550,6 +550,7 @@ void keyball_oled_render_layerinfo(void) {
 #endif
 #endif
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 // 公開API関数
 
