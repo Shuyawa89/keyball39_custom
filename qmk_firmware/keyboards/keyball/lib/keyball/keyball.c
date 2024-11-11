@@ -313,9 +313,11 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
     }
 #endif
 
+#ifdef SCROLL_INVERSE_MODE
     // スクロール方向を反転
     r->h = -r->h;
     r->v = -r->v;
+#endif
 
 #if defined(KEYBALL_SCROLLBALL_INHIVITOR) && KEYBALL_SCROLLBALL_INHIVITOR > 0
     if (TIMER_DIFF_32(now, keyball.scroll_mode_changed) < KEYBALL_SCROLLBALL_INHIVITOR)
