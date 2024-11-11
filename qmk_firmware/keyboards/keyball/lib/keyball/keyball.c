@@ -220,7 +220,6 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_move(keyball_motion_
     m->y = 0;
 }
 
-// 関数の定義を外に移動
 static void motion_to_mouse(keyball_motion_t *m, report_mouse_t *r, bool is_left, bool as_scroll)
 {
     if (as_scroll)
@@ -266,83 +265,57 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
     int16_t x = divmod16(&m->x, div);
     int16_t y = divmod16(&m->y, div);
 
-    // 特定のレイヤーでズーム機能を有効化
-    bool zoom_mode = layer_state_is(KEYBALL_ZOOM_LAYER);
-
-    if (zoom_mode)
-    {
-        // ズームイン・ズームアウトの処理
-        if (y > 0)
-        {
-            // 一律でCtrl + '+' を送信
-            register_code(KC_LCTL);
-            register_code(KC_EQUAL);
-            unregister_code(KC_EQUAL);
-            unregister_code(KC_LCTL);
-        }
-        else if (y < 0)
-        {
-            // 一律でCtrl + '-' を送信
-            register_code(KC_LCTL);
-            register_code(KC_MINUS);
-            unregister_code(KC_MINUS);
-            unregister_code(KC_LCTL);
-        }
-    }
-    else
-    {
-        // 通常のスクロール処理
+    // 通常のスクロール処理
 #if KEYBALL_MODEL == 61 || KEYBALL_MODEL == 39 || KEYBALL_MODEL == 147 || KEYBALL_MODEL == 44
-        r->h = clip2int8(y);  // Y方向の動きを水平方向に適用
-        r->v = -clip2int8(x); // X方向の動きを垂直方向に適用（方向を反転）
-        if (is_left)
-        { // 左手用デバイスの場合、方向をさらに反転
-            r->h = -r->h;
-            r->v = -r->v;
-        }
+    r->h = clip2int8(y);  // Y方向の動きを水平方向に適用
+    r->v = -clip2int8(x); // X方向の動きを垂直方向に適用（方向を反転）
+    if (is_left)
+    { // 左手用デバイスの場合、方向をさらに反転
+        r->h = -r->h;
+        r->v = -r->v;
+    }
 #elif KEYBALL_MODEL == 46
-        r->h = clip2int8(x); // X方向の動きを水平方向に適用
-        r->v = clip2int8(y); // Y方向の動きを垂直方向に適用
+    r->h = clip2int8(x); // X方向の動きを水平方向に適用
+    r->v = clip2int8(y); // Y方向の動きを垂直方向に適用
 #else
 #error "unknown Keyball model" // 未知のKeyballモデルの場合、コンパイルエラーを出力
 #endif
 
-        // スクロールスナップ機能を適用する（スクロールの引っ掛かり効果を追加）
+    // スクロールスナップ機能を適用する（スクロールの引っ掛かり効果を追加）
 #if KEYBALL_SCROLLSNAP_ENABLE == 1
-        // 旧バージョンのスナップ機能（バージョン1.3.2まで）
-        if (r->h != 0 || r->v != 0)
-        {                                   // マウスレポートに動きがある場合
-            keyball.scroll_snap_last = now; // 最後のスナップタイムを更新
-        }
-        else if (TIMER_DIFF_32(now, keyball.scroll_snap_last) >= KEYBALL_SCROLLSNAP_RESET_TIMER)
-        {
-            keyball.scroll_snap_tension_h = 0; // 一定時間動きがない場合、張力をリセット
-        }
-        if (abs(keyball.scroll_snap_tension_h) < KEYBALL_SCROLLSNAP_TENSION_THRESHOLD)
-        {
-            keyball.scroll_snap_tension_h += y; // 張力を増加させて引っ掛かり効果を再現
-            r->h = 0;                           // スクロール方向は固定
-        }
+    // 旧バージョンのスナップ機能（バージョン1.3.2まで）
+    if (r->h != 0 || r->v != 0)
+    {                                   // マウスレポートに動きがある場合
+        keyball.scroll_snap_last = now; // 最後のスナップタイムを更新
+    }
+    else if (TIMER_DIFF_32(now, keyball.scroll_snap_last) >= KEYBALL_SCROLLSNAP_RESET_TIMER)
+    {
+        keyball.scroll_snap_tension_h = 0; // 一定時間動きがない場合、張力をリセット
+    }
+    if (abs(keyball.scroll_snap_tension_h) < KEYBALL_SCROLLSNAP_TENSION_THRESHOLD)
+    {
+        keyball.scroll_snap_tension_h += y; // 張力を増加させて引っ掛かり効果を再現
+        r->h = 0;                           // スクロール方向は固定
+    }
 #elif KEYBALL_SCROLLSNAP_ENABLE == 2
-        // 新バージョンのスナップ機能
-        switch (keyball_get_scrollsnap_mode())
-        {
-        case KEYBALL_SCROLLSNAP_MODE_VERTICAL:
-            r->h = 0; // 水平方向の動きを無効化（縦方向のみにスクロール）
-            break;
-        case KEYBALL_SCROLLSNAP_MODE_HORIZONTAL:
-            r->v = 0; // 垂直方向の動きを無効化（横方向のみにスクロール）
-            break;
-        default:
-            // 何もしない
-            break;
-        }
+    // 新バージョンのスナップ機能
+    switch (keyball_get_scrollsnap_mode())
+    {
+    case KEYBALL_SCROLLSNAP_MODE_VERTICAL:
+        r->h = 0; // 水平方向の動きを無効化（縦方向のみにスクロール）
+        break;
+    case KEYBALL_SCROLLSNAP_MODE_HORIZONTAL:
+        r->v = 0; // 垂直方向の動きを無効化（横方向のみにスクロール）
+        break;
+    default:
+        // 何もしない
+        break;
+    }
 #endif
 
-        // スクロール方向を反転
-        r->h = -r->h;
-        r->v = -r->v;
-    }
+    // スクロール方向を反転
+    r->h = -r->h;
+    r->v = -r->v;
 
 #if defined(KEYBALL_SCROLLBALL_INHIVITOR) && KEYBALL_SCROLLBALL_INHIVITOR > 0
     if (TIMER_DIFF_32(now, keyball.scroll_mode_changed) < KEYBALL_SCROLLBALL_INHIVITOR)

@@ -42,3 +42,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /// 特定のレイヤーでズーム機能を有効にするためのレイヤー番号
 #define KEYBALL_ZOOM_LAYER 6
+
+// スクロールモードのレイヤー番号
+#define KEYBALL_SCROLL_LAYER 5
