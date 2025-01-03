@@ -150,6 +150,8 @@ typedef struct {
     uint32_t scroll_mode_changed;         // スクロールモード変更時刻
     uint8_t  scroll_div;                  // スクロール除数
 
+    uint8_t  scroll_reverse_mode;         // スクロール方向の逆転(OSで切り替える用)
+
 #if KEYBALL_SCROLLSNAP_ENABLE == 1
     uint32_t scroll_snap_last;            // 最後のスナップタイム
     int8_t   scroll_snap_tension_h;       // スクロールスナップのテンション (水平)
@@ -164,6 +166,11 @@ typedef struct {
     // 押下中のキーを示すバッファ
     char pressing_keys[KEYBALL_OLED_MAX_PRESSING_KEYCODES + 1];
 } keyball_t;
+
+typedef enum {
+    KEYBALL_SCROLL_REVERSE_VERTICAL   = 1,
+    KEYBALL_SCROLL_REVERSE_HORIZONTAL = 2,
+} keyball_scroll_t;
 
 typedef enum {
     KEYBALL_ADJUST_PENDING    = 0, // レイアウト調整保留中
@@ -232,3 +239,9 @@ uint8_t keyball_get_cpi(void);
 
 /// keyball_set_cpiはトラックボールのCPIを変更します。
 void keyball_set_cpi(uint8_t cpi);
+
+/// keyball_get_scroll_reverse_modeは現在のスクロール方向を取得します。
+uint8_t keyball_get_scroll_reverse_mode(void);
+
+/// keyball_set_scroll_reverse_modeはスクロール方向を変更します。
+void keyball_set_scroll_reverse_mode(keyball_scroll_t mode);

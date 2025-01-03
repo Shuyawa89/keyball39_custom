@@ -224,6 +224,19 @@ static void scale_mouse_movement(keyball_motion_t *m)
     m->y = clip2int8((int16_t)(m->y * speed_multiplier));
 }
 
+uint8_t keyball_get_scroll_reverse_mode(void)
+{
+    return keyball.scroll_reverse_mode;
+}
+
+void keyball_set_scroll_reverse_mode(keyball_scroll_t mode)
+{
+    if (mode <= (KEYBALL_SCROLL_REVERSE_VERTICAL | KEYBALL_SCROLL_REVERSE_HORIZONTAL))
+    {
+        keyball.scroll_reverse_mode = mode;
+    }
+}
+
 __attribute__((weak)) void keyball_on_apply_motion_to_mouse_move(keyball_motion_t *m, report_mouse_t *r, bool is_left)
 {
     scale_mouse_movement(m); // マウスの加速度を追加
@@ -282,6 +295,34 @@ static inline bool should_report(void)
     return true;
 }
 
+#if defined(OS_DETECTION_ENABLE) && defined(DEFERRED_EXEC_ENABLE)
+uint32_t os_detect_callback(uint32_t trigger_time, void *cb_arg) {
+    // OSごとのスクロール方向の逆転設定
+    switch (detected_host_os()) {
+    case OS_WINDOWS: {
+        uint8_t mode = 0; // スクロール方向の逆転を無効化
+        keyball_set_scroll_reverse_mode(mode);
+        break;
+    }
+    case OS_MACOS: {
+        uint8_t mode = KEYBALL_SCROLL_REVERSE_VERTICAL | KEYBALL_SCROLL_REVERSE_HORIZONTAL; // 垂直・水平スクロール方向を逆転
+        keyball_set_scroll_reverse_mode(mode);
+        break;
+    }
+    default:
+        break;
+    }
+    return 0; // コールバック完了
+}
+#endif
+
+void keyboard_post_init_user(void) {
+#if defined(OS_DETECTION_ENABLE) && defined(DEFERRED_EXEC_ENABLE)
+    // 初期化後にOS検出コールバックを遅延実行
+    defer_exec(100, os_detect_callback, NULL);
+#endif
+}
+
 __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motion_t *m, report_mouse_t *r, bool is_left)
 {
     uint32_t now = timer_read32(); // 'now' を定義
@@ -290,6 +331,16 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
     int16_t div = 1 << (keyball_get_scroll_div() - 1);
     int16_t x = divmod16(&m->x, div);
     int16_t y = divmod16(&m->y, div);
+
+    // スクロール方向の逆転処理
+    if (keyball_get_scroll_reverse_mode() & KEYBALL_SCROLL_REVERSE_VERTICAL)
+    {
+        r->v = -r->v;
+    }
+    if (keyball_get_scroll_reverse_mode() & KEYBALL_SCROLL_REVERSE_HORIZONTAL)
+    {
+        r->h = -r->h;
+    }
 
     // 通常のスクロール処理
 #if KEYBALL_MODEL == 61 || KEYBALL_MODEL == 39 || KEYBALL_MODEL == 147 || KEYBALL_MODEL == 44
@@ -337,12 +388,6 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
         // 何もしない
         break;
     }
-#endif
-
-#ifdef SCROLL_INVERSE_MODE
-    // スクロール方向を反転
-    r->h = -r->h;
-    r->v = -r->v;
 #endif
 
 #if defined(KEYBALL_SCROLLBALL_INHIVITOR) && KEYBALL_SCROLLBALL_INHIVITOR > 0
