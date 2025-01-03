@@ -16,6 +16,10 @@ Copyright 2022 MURAOKA Taro (aka KoRoN)
 #include "transactions.h"
 #endif
 
+#ifdef OS_DETECTION_ENABLE
+#    include "os_detection.h"
+#endif
+
 #include "keyball.h"
 #include "drivers/pmw3360/pmw3360.h"
 
@@ -332,16 +336,6 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
     int16_t x = divmod16(&m->x, div);
     int16_t y = divmod16(&m->y, div);
 
-    // スクロール方向の逆転処理
-    if (keyball_get_scroll_reverse_mode() & KEYBALL_SCROLL_REVERSE_VERTICAL)
-    {
-        r->v = -r->v;
-    }
-    if (keyball_get_scroll_reverse_mode() & KEYBALL_SCROLL_REVERSE_HORIZONTAL)
-    {
-        r->h = -r->h;
-    }
-
     // 通常のスクロール処理
 #if KEYBALL_MODEL == 61 || KEYBALL_MODEL == 39 || KEYBALL_MODEL == 147 || KEYBALL_MODEL == 44
     r->h = clip2int8(y);  // Y方向の動きを水平方向に適用
@@ -399,6 +393,17 @@ __attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motio
         keyball.that_motion.y = 0;
     }
 #endif
+
+   // スクロール方向の逆転処理
+    if (keyball_get_scroll_reverse_mode() & KEYBALL_SCROLL_REVERSE_VERTICAL)
+    {
+        r->v = -r->v;
+    }
+    if (keyball_get_scroll_reverse_mode() & KEYBALL_SCROLL_REVERSE_HORIZONTAL)
+    {
+        r->h = -r->h;
+    }
+
 }
 
 report_mouse_t pointing_device_driver_get_report(report_mouse_t rep)
