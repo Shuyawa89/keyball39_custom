@@ -199,8 +199,34 @@ void pointing_device_driver_set_cpi(uint16_t cpi)
     keyball_set_cpi(cpi);
 }
 
+static void scale_mouse_movement(keyball_motion_t *m)
+{
+    int16_t movement_size = abs(m->x) + abs(m->y);
+
+    const float speed_multipliers[] = {0.2, 0.5, 0.7, 0.9, 1.0, 1.5, 3.0};
+    const int thresholds[] = {1, 2, 3, 4, 5, 30, 60};
+    const int num_thresholds = sizeof(thresholds) / sizeof(thresholds[0]);
+
+    float speed_multiplier = 1.0;
+    for (int i = 0; i < num_thresholds; ++i)
+    {
+        if (movement_size > thresholds[i])
+        {
+            speed_multiplier = speed_multipliers[i];
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    m->x = clip2int8((int16_t)(m->x * speed_multiplier));
+    m->y = clip2int8((int16_t)(m->y * speed_multiplier));
+}
+
 __attribute__((weak)) void keyball_on_apply_motion_to_mouse_move(keyball_motion_t *m, report_mouse_t *r, bool is_left)
 {
+    scale_mouse_movement(m); // マウスの加速度を追加
 #if KEYBALL_MODEL == 61 || KEYBALL_MODEL == 39 || KEYBALL_MODEL == 147 || KEYBALL_MODEL == 44
     r->x = clip2int8(m->y);
     r->y = clip2int8(m->x);
@@ -466,12 +492,59 @@ static void rpc_set_cpi_invoke(void)
 #ifdef OLED_ENABLE
 // キーコードから名前への変換テーブル
 const char PROGMEM code_to_name[] = {
-    'a', 'b', 'c', 'd', 'e', 'f',  'g', 'h', 'i',  'j',
-    'k', 'l', 'm', 'n', 'o', 'p',  'q', 'r', 's',  't',
-    'u', 'v', 'w', 'x', 'y', 'z',  '1', '2', '3',  '4',
-    '5', '6', '7', '8', '9', '0',  'R', 'E', 'B',  'T',
-    '_', '-', '=', '[', ']', '\\', '#', ';', '\'', '`',
-    ',', '.', '/',
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+    'f',
+    'g',
+    'h',
+    'i',
+    'j',
+    'k',
+    'l',
+    'm',
+    'n',
+    'o',
+    'p',
+    'q',
+    'r',
+    's',
+    't',
+    'u',
+    'v',
+    'w',
+    'x',
+    'y',
+    'z',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '0',
+    'R',
+    'E',
+    'B',
+    'T',
+    '_',
+    '-',
+    '=',
+    '[',
+    ']',
+    '\\',
+    '#',
+    ';',
+    '\'',
+    '`',
+    ',',
+    '.',
+    '/',
 };
 #endif
 
