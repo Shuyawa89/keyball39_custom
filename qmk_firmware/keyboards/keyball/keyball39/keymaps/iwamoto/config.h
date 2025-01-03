@@ -44,4 +44,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KEYBALL_SCROLL_LAYER 5
 
 // スクロール方向の逆転設定
-// #define SCROLL_INVERSE_MODE
+#define SCROLL_INVERSE_MODE
