@@ -207,7 +207,7 @@ static void scale_mouse_movement(keyball_motion_t *m)
 {
     int16_t movement_size = abs(m->x) + abs(m->y);
 
-    const float speed_multipliers[] = {0.2, 0.5, 0.7, 0.9, 1.0, 1.5, 3.0};
+    const float speed_multipliers[] = {0.1, 0.4, 0.6, 0.8, 1.0, 1.5, 3.0};
     const int thresholds[] = {1, 2, 3, 4, 5, 30, 60};
     const int num_thresholds = sizeof(thresholds) / sizeof(thresholds[0]);
 
