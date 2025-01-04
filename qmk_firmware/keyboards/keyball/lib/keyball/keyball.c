@@ -303,13 +303,14 @@ static inline bool should_report(void)
 uint32_t os_detect_callback(uint32_t trigger_time, void *cb_arg) {
     // OSごとのスクロール方向の逆転設定
     switch (detected_host_os()) {
-    case OS_WINDOWS: {
-        uint8_t mode = 0; // スクロール方向の逆転を無効化
+    case OS_WINDOWS:
+    case OS_LINUX: {
+        uint8_t mode = KEYBALL_SCROLL_REVERSE_VERTICAL | KEYBALL_SCROLL_REVERSE_HORIZONTAL; // 垂直・水平スクロール方向を逆転
         keyball_set_scroll_reverse_mode(mode);
         break;
     }
     case OS_MACOS: {
-        uint8_t mode = KEYBALL_SCROLL_REVERSE_VERTICAL | KEYBALL_SCROLL_REVERSE_HORIZONTAL; // 垂直・水平スクロール方向を逆転
+        uint8_t mode = 0; // スクロール方向の逆転を無効化
         keyball_set_scroll_reverse_mode(mode);
         break;
     }
