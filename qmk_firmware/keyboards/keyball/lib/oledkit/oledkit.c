@@ -18,6 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "quantum.h"
 
+#ifdef OLED_ENABLE
+extern void keyball_oled_render_osinfo(void);
+#endif
+
 #if defined(OLED_ENABLE) && !defined(OLEDKIT_DISABLE)
 
 __attribute__((weak)) void oledkit_render_logo_user(void) {
