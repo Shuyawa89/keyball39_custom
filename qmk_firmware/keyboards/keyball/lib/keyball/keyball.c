@@ -302,16 +302,17 @@ static inline bool should_report(void)
 #if defined(OS_DETECTION_ENABLE) && defined(DEFERRED_EXEC_ENABLE)
 uint32_t os_detect_callback(uint32_t trigger_time, void *cb_arg) {
     switch (detected_host_os()) {
-        // Windows, Linuxの場合：垂直・水平ともに逆転する
+        // Windows, Linuxの場合：そのまま
         case OS_WINDOWS:
         case OS_LINUX: {
-            uint8_t mode = KEYBALL_SCROLL_REVERSE_VERTICAL | KEYBALL_SCROLL_REVERSE_HORIZONTAL;
-            keyball_set_scroll_reverse_mode(mode);
+            keyball_set_scroll_reverse_mode(0);
             break;
         }
-        // macOSの場合：スクロール方向は変更しない（逆転モードを0に設定）
+        // macOSの場合：垂直・水平ともにスクロール方向を逆転する
         case OS_MACOS: {
-            keyball_set_scroll_reverse_mode(0);
+            uint8_t mode = KEYBALL_SCROLL_REVERSE_VERTICAL | KEYBALL_SCROLL_REVERSE_HORIZONTAL;
+            keyball_set_scroll_reverse_mode(mode);
+
             break;
         }
         default:
