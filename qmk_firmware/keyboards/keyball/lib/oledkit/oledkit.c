@@ -41,6 +41,8 @@ __attribute__((weak)) bool oled_task_user(void) {
         oledkit_render_info_user();
     } else {
         oledkit_render_logo_user();
+        oled_advance_page(false);      // ロゴ表示後に改行して
+        keyball_oled_render_osinfo();    // OS情報を追加表示する
     }
     return true;
 }

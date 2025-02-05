@@ -734,6 +734,32 @@ void keyball_oled_render_layerinfo(void)
 #endif
 }
 
+// OS情報表示用関数
+#ifdef OLED_ENABLE
+void keyball_oled_render_osinfo(void) {
+#ifdef OS_DETECTION_ENABLE
+    char os_str[9];
+    switch (detected_host_os()) {
+        case OS_WINDOWS:
+            strcpy(os_str, "Win");
+            break;
+        case OS_LINUX:
+            strcpy(os_str, "Linux");
+            break;
+        case OS_MACOS:
+            strcpy(os_str, "Mac");
+            break;
+        default:
+            strcpy(os_str, "Unknown");
+            break;
+    }
+    oled_write_P(PSTR("OS:"), false);
+    oled_write(os_str, false);
+#endif
+}
+#endif
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // 公開API関数
 
