@@ -39,6 +39,11 @@ static const char BL = '\xB0';                      // 空白表示文字
 static const char LFSTR_ON[] PROGMEM = "\xB2\xB3";  // "ON"表示
 static const char LFSTR_OFF[] PROGMEM = "\xB4\xB5"; // "OFF"表示
 
+#ifdef OS_DETECTION_ENABLE
+static os_variant_t current_os = OS_UNSURE;
+#endif
+
+
 // Keyballの初期化
 keyball_t keyball = {
     .this_have_ball = false,
@@ -301,25 +306,26 @@ static inline bool should_report(void)
 
 #if defined(OS_DETECTION_ENABLE) && defined(DEFERRED_EXEC_ENABLE)
 uint32_t os_detect_callback(uint32_t trigger_time, void *cb_arg) {
-    // OSごとのスクロール方向の逆転設定
     switch (detected_host_os()) {
-    case OS_WINDOWS:
-    case OS_LINUX: {
-        uint8_t mode = KEYBALL_SCROLL_REVERSE_VERTICAL | KEYBALL_SCROLL_REVERSE_HORIZONTAL; // 垂直・水平スクロール方向を逆転
-        keyball_set_scroll_reverse_mode(mode);
-        break;
+        // Windows, Linuxの場合：垂直・水平ともに逆転する
+        case OS_WINDOWS:
+        case OS_LINUX: {
+            uint8_t mode = KEYBALL_SCROLL_REVERSE_VERTICAL | KEYBALL_SCROLL_REVERSE_HORIZONTAL;
+            keyball_set_scroll_reverse_mode(mode);
+            break;
+        }
+        // macOSの場合：スクロール方向は変更しない（逆転モードを0に設定）
+        case OS_MACOS: {
+            keyball_set_scroll_reverse_mode(0);
+            break;
+        }
+        default:
+            break;
     }
-    case OS_MACOS: {
-        uint8_t mode = 0; // スクロール方向の逆転を無効化
-        keyball_set_scroll_reverse_mode(mode);
-        break;
-    }
-    default:
-        break;
-    }
-    return 0; // コールバック完了
+    return 0;
 }
 #endif
+
 
 void keyboard_post_init_user(void) {
 #if defined(OS_DETECTION_ENABLE) && defined(DEFERRED_EXEC_ENABLE)
