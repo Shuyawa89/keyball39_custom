@@ -245,3 +245,9 @@ uint8_t keyball_get_scroll_reverse_mode(void);
 
 /// keyball_set_scroll_reverse_modeはスクロール方向を変更します。
 void keyball_set_scroll_reverse_mode(keyball_scroll_t mode);
+
+/// 追加設定
+/// OLEDの表示関数
+#ifdef OLED_ENABLE
+void keyball_oled_render_osinfo(void);
+#endif

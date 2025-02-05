@@ -39,11 +39,6 @@ static const char BL = '\xB0';                      // 空白表示文字
 static const char LFSTR_ON[] PROGMEM = "\xB2\xB3";  // "ON"表示
 static const char LFSTR_OFF[] PROGMEM = "\xB4\xB5"; // "OFF"表示
 
-#ifdef OS_DETECTION_ENABLE
-static os_variant_t current_os = OS_UNSURE;
-#endif
-
-
 // Keyballの初期化
 keyball_t keyball = {
     .this_have_ball = false,
